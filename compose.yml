@@ -1,0 +1,32 @@
+###################################################
+# This Compose file provides the development environment for the todo app.
+# 
+# Seeing the final version of the application bundles the frontend with the
+# backend, we are able to "simulate" that by using a proxy to route requests
+# to the appropriate service. All requests to /api will be routed to the 
+# backend while all other requests will be sent to the client service. While
+# there is some overlap in the routing rules, the proxy determines the service
+# based on the most specific rule.
+#
+# To view configurations of Traefik, or MySQL database, or phpMyAdmin,
+# check corresponding folders in this repository.
+###################################################
+networks:
+  traefik_public:
+    external: true
+
+services:
+  todo-react:
+    restart: "unless-stopped"
+    container_name: mhzdev-todo-react
+    build:
+      context: ./
+    networks:
+      - traefik_public
+    labels:
+      - traefik.docker.network = traefik_public
+      - traefik.enable = true
+      - traefik.http.routers.todo-react.rule = "Host(`sandbox-todo-react.connectme365.com`)"
+      - traefik.http.services.todo-react.loadbalancer.server.port = 3000
+      - traefik.http.routers.todo-react.tls = true
+      - traefik.http.routers.todo-react.entrypoints = https
